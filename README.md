@@ -6,8 +6,8 @@ Build a custom API Rate Limiter in NestJS to limit the number of requests a user
 
 ### Rate-Limiting Rules
 - Users are allowed:
-- - 10 requests per minute for general endpoints.
-- - 20 requests per minute for authenticated users.
+  - 10 requests per minute for general endpoints.
+  - 20 requests per minute for authenticated users.
 - Exceeding the limit should return an HTTP 429 Too Many Requests error with a descriptive message
 ### Features
 - Middleware to intercept incoming requests and enforce rate limits based on user identity (IP address for unauthenticated users, userId for authenticated users).
