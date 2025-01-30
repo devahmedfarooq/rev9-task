@@ -21,7 +21,7 @@ export class AppController {
 
   @Get('/public')
   getPublic() {
-    console.log("API REQUEST COMING")
+  //  console.log("API REQUEST COMING")
     return { message: 'Public endpoint accessed.' };
   }
 

@@ -1,0 +1,201 @@
+{
+	"info": {
+		"_postman_id": "8332985d-99fd-484d-814c-6c39f5077ef4",
+		"name": "Rev9 Api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "33487378"
+	},
+	"item": [
+		{
+			"name": "Public",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c2FtYSIsInBhc3N3b3JkIjoiYXNkYXNhc2RmIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3MzgxOTczMzQsImV4cCI6MTczODgwMjEzNH0.VhZ_nIa_zG0pWBFdKDOR33fMvSxHyed56FlZblYDbsI",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}:{{PORT}}/public",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"public"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Protected",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c2FtYSIsInBhc3N3b3JkIjoiYXNkYXNhc2RmIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3MzgxOTczMzQsImV4cCI6MTczODgwMjEzNH0.VhZ_nIa_zG0pWBFdKDOR33fMvSxHyed56FlZblYDbsI",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}:{{PORT}}/protected",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"protected"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Limits",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c2FtYSIsInBhc3N3b3JkIjoiYXNkYXNhc2RmIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzM4MTk4NTM3LCJleHAiOjE3Mzg4MDMzMzd9.n13Tew4KgLR7sRSnrthOpUmbsK-braKbltKI578i9vg",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"route\"  : \"/public\" ,\r\n  \"limit\"  : 10,\r\n  \"timeWindow\" : 60,\r\n  \"role\" : \"auth\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}:{{PORT}}/admin/update-limits",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"admin",
+						"update-limits"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\" : \"usama\",\r\n    \"password\": \"asdasasdf\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}:{{PORT}}/auth/login",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\" : \"usama\",\r\n    \"password\": \"asdasasdf\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}:{{PORT}}/auth/register",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": "",
+			"type": "default"
+		},
+		{
+			"key": "PORT",
+			"value": "3000",
+			"type": "default"
+		}
+	]
+}

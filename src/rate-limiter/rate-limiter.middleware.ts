@@ -44,7 +44,11 @@ export class RateLimitMiddleware implements NestMiddleware {
 
       let routeConfig: Record<string, string> = {};
       try {
-        routeConfig = await this.redisClient.hgetall(`rate-limit-config:${route}`);
+        if (userId) {
+          routeConfig = await this.redisClient.hgetall(`rate-limit-config:${route}-auth`);
+        } else {
+          routeConfig = await this.redisClient.hgetall(`rate-limit-config:${route}`);
+        }
       } catch (error) {
         console.error('Redis error while fetching rate limits:', error);
       }
@@ -91,7 +95,7 @@ export class RateLimitMiddleware implements NestMiddleware {
       }
 
       if (currentRequests > limit) {
-        console.log("Current Limit Hit")
+        //console.log("Current Limit Hit")
         return res.status(HttpStatus.TOO_MANY_REQUESTS).json({
           statusCode: HttpStatus.TOO_MANY_REQUESTS,
           message: 'Too Many Requests. Try again later.',

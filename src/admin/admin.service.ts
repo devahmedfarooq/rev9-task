@@ -17,17 +17,28 @@ export class AdminService {
 
 
     async updateLimit(updateRateLimitDto: updateRatelimitDto) {
-        const { route, limit, timeWindow } = updateRateLimitDto;
+        const { route, limit, timeWindow, role } = updateRateLimitDto;
 
         if (!route || !limit || !timeWindow) {
             throw new ForbiddenException('Missing required fields');
         }
 
+
+        if (role && role == 'auth') {
+            await this.redisClient.hmset(`rate-limit-config:${route}-${role}`, {
+                limit: limit.toString(),
+                window: timeWindow.toString(),
+                role: role.toString()
+            });
+        } else {
+            await this.redisClient.hmset(`rate-limit-config:${route}`, {
+                limit: limit.toString(),
+                window: timeWindow.toString()
+            });
+        }
+
         // Store the limit for the specific route in Redis
-        await this.redisClient.hmset(`rate-limit-config:${route}`, {
-            limit: limit.toString(),
-            window: timeWindow.toString(),
-        });
+
 
         return {
             success: true,
