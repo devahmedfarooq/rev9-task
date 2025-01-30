@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import Redis from 'ioredis';
 import * as jwt from 'jsonwebtoken';
@@ -8,7 +8,6 @@ const DEFAULT_LIMITS = {
   private: { limit: 20, window: 60 },
 };
 
-// Define public routes (apply IP-based limits even for logged-in users)
 const PUBLIC_ROUTES = ['/public', '/', '/auth/fake-token'];
 
 @Injectable()
@@ -21,10 +20,10 @@ export class RateLimitMiddleware implements NestMiddleware {
 
   async use(req: Request, res: Response, next: NextFunction) {
     try {
-      let key: string = ''; 
+      let key: string = '';
       let limit: number;
       let window: number;
-      const route = req.originalUrl; 
+      const route = req.originalUrl;
 
       // Extract user ID from JWT (if available)
       const authHeader = req.headers.authorization;
@@ -43,16 +42,14 @@ export class RateLimitMiddleware implements NestMiddleware {
         }
       }
 
-      // Fetch route-specific limits from Redis
       let routeConfig: Record<string, string> = {};
       try {
         routeConfig = await this.redisClient.hgetall(`rate-limit-config:${route}`);
       } catch (error) {
         console.error('Redis error while fetching rate limits:', error);
       }
-  //    console.log(route, "\tROUTECONFIG : ", routeConfig)
+      //    console.log(route, "\tROUTECONFIG : ", routeConfig)
 
-      // Apply route-specific limit if available
       if (routeConfig && routeConfig.limit && routeConfig.window) {
         limit = parseInt(routeConfig.limit, 10);
         window = parseInt(routeConfig.window, 10);
