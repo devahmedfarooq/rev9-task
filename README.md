@@ -20,3 +20,7 @@ Build a custom API Rate Limiter in NestJS to limit the number of requests a user
 ``` $ yarn ```
 - After installing dependencies, just run the following command.
 ``` $ yarn start:dev```
+
+## Documentation
+### Admin 
+- ``` update-limits ``` if you pass role = auth, the limit will be set for auth user. Passing or not passing any other role including role = admin; will result in setting for un-auth users
