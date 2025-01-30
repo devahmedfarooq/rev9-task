@@ -12,10 +12,9 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('Authorization token missing');
     }
 
-    const token = authHeader.split(' ')[1];
-
     try {
-      const decoded = jwt.verify(token, 'your_secret_key');
+      const token = authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWTSECRET ?? 'REV9TASKAHMED');
       req['user'] = decoded;
       return true;
     } catch (error) {

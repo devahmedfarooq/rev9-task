@@ -3,11 +3,13 @@ import { Request, Response, NextFunction } from 'express';
 import Redis from 'ioredis';
 import * as jwt from 'jsonwebtoken';
 
-// Default rate limits (fallback if not found in Redis)
 const DEFAULT_LIMITS = {
-  public: { limit: 10, window: 60 }, // 10 requests per minute for unauthenticated users
-  private: { limit: 20, window: 60 }, // 20 requests per minute for authenticated users
+  public: { limit: 10, window: 60 },
+  private: { limit: 20, window: 60 },
 };
+
+// Define public routes (apply IP-based limits even for logged-in users)
+const PUBLIC_ROUTES = ['/public', '/', '/auth/fake-token'];
 
 @Injectable()
 export class RateLimitMiddleware implements NestMiddleware {
@@ -18,67 +20,97 @@ export class RateLimitMiddleware implements NestMiddleware {
   }
 
   async use(req: Request, res: Response, next: NextFunction) {
-    let key: string;
-    let limit: number;
-    let window: number;
-    const route = req.originalUrl; // Get the requested route
+    try {
+      let key: string = ''; 
+      let limit: number;
+      let window: number;
+      const route = req.originalUrl; 
 
-    // Check if the user is authenticated
-    const authHeader = req.headers.authorization;
-    let userId: string | null = null;
+      // Extract user ID from JWT (if available)
+      const authHeader = req.headers.authorization;
+      let userId: string | null = null;
 
-    if (authHeader) {
-      try {
+      if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, 'your_secret_key') as { userId: string };
-        userId = decoded.userId;
-      } catch (error) {
-        throw new UnauthorizedException('Invalid token');
+
+        if (token) {
+          try {
+            const decoded = jwt.verify(token, process.env.JWTSECRET ?? 'REV9TASKAHMED') as { userId: string };
+            userId = decoded.userId;
+          } catch (error) {
+            throw new UnauthorizedException('Invalid token');
+          }
+        }
       }
-    }
 
-    if (userId) {
-      key = `rate-limit:user:${userId}:${route}`;
-    } else {
-      key = `rate-limit:ip:${req.ip}:${route}`;
-    }
+      // Fetch route-specific limits from Redis
+      let routeConfig: Record<string, string> = {};
+      try {
+        routeConfig = await this.redisClient.hgetall(`rate-limit-config:${route}`);
+      } catch (error) {
+        console.error('Redis error while fetching rate limits:', error);
+      }
+  //    console.log(route, "\tROUTECONFIG : ", routeConfig)
 
-    // Get route-specific limit from Redis (if set)
-    const routeLimitData = await this.redisClient.hgetall(`rate-limit-config:${route}`);
-    if (routeLimitData && routeLimitData.limit && routeLimitData.window) {
-      limit = parseInt(routeLimitData.limit, 10);
-      window = parseInt(routeLimitData.window, 10);
-    } else {
-      limit = userId ? DEFAULT_LIMITS.private.limit : DEFAULT_LIMITS.public.limit;
-      window = userId ? DEFAULT_LIMITS.private.window : DEFAULT_LIMITS.public.window;
-    }
+      // Apply route-specific limit if available
+      if (routeConfig && routeConfig.limit && routeConfig.window) {
+        limit = parseInt(routeConfig.limit, 10);
+        window = parseInt(routeConfig.window, 10);
+      } else {
 
-    // Increment request count
-    const currentRequests = await this.redisClient.incr(key);
 
-    // Set TTL if it's the first request
-    if (currentRequests === 1) {
-      await this.redisClient.expire(key, window);
-    }
+        if (PUBLIC_ROUTES.includes(route)) {
+          if (userId) {
+            key = `rate-limit:user:${userId}:${route}`;
+            limit = DEFAULT_LIMITS.private.limit;
+            window = DEFAULT_LIMITS.private.window;
+          } else {
+            key = `rate-limit:ip:${req.ip}:${route}`;
+            limit = DEFAULT_LIMITS.public.limit;
+            window = DEFAULT_LIMITS.public.window;
+          }
+        } else {
+          if (userId) {
+            key = `rate-limit:user:${userId}:${route}`;
+            limit = DEFAULT_LIMITS.private.limit;
+            window = DEFAULT_LIMITS.private.window;
+          } else {
+            key = `rate-limit:ip:${req.ip}:${route}`;
+            limit = DEFAULT_LIMITS.public.limit;
+            window = DEFAULT_LIMITS.public.window;
+          }
+        }
+      }
 
-    // If limit exceeded, throw error
-    if (currentRequests > limit) {
-      throw new HttpException(
-        {
+      let currentRequests = 0;
+      try {
+        currentRequests = await this.redisClient.incr(key);
+      } catch (error) {
+        console.error('Redis error while incrementing request count:', error);
+      }
+
+      if (currentRequests === 1) {
+        await this.redisClient.expire(key, window);
+      }
+
+      if (currentRequests > limit) {
+        console.log("Current Limit Hit")
+        return res.status(HttpStatus.TOO_MANY_REQUESTS).json({
           statusCode: HttpStatus.TOO_MANY_REQUESTS,
           message: 'Too Many Requests. Try again later.',
-          retry_after: window, // Time left before reset
-        },
-        HttpStatus.TOO_MANY_REQUESTS,
-      );
+          retry_after: window,
+        });
+      }
+
+      const ttl = await this.redisClient.ttl(key);
+      res.setHeader('X-RateLimit-Limit', limit);
+      res.setHeader('X-RateLimit-Remaining', Math.max(0, limit - currentRequests));
+      res.setHeader('X-RateLimit-Reset', ttl);
+
+      next();
+    } catch (error) {
+      console.error('Rate limiting error:', error);
+      next(error);
     }
-
-    // Set rate-limit headers
-    const ttl = await this.redisClient.ttl(key);
-    res.setHeader('X-RateLimit-Limit', limit);
-    res.setHeader('X-RateLimit-Remaining', Math.max(0, limit - currentRequests));
-    res.setHeader('X-RateLimit-Reset', ttl);
-
-    next();
   }
 }

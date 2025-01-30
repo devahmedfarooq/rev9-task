@@ -7,6 +7,10 @@ import { Keyv } from 'keyv';
 import { CacheableMemory } from 'cacheable';
 import { RedisService } from './redis/redis.service';
 import { RateLimitMiddleware } from './rate-limiter/rate-limiter.middleware';
+import { MongooseModule } from '@nestjs/mongoose';
+import { AuthModule } from './auth/auth.module';
+import { AdminModule } from './admin/admin.module';
+
 
 @Module({
   imports: [CacheModule.registerAsync({
@@ -21,7 +25,13 @@ import { RateLimitMiddleware } from './rate-limiter/rate-limiter.middleware';
       };
     },
     isGlobal: true,
-  })],
+  }), MongooseModule.forRootAsync({
+    useFactory: async () => {
+      return {
+        uri: "mongodb://localhost:27017/rev9mongo"
+      }
+    }
+  }), AuthModule, AdminModule],
   controllers: [AppController],
   providers: [AppService, RedisService],
 })
